@@ -46,20 +46,22 @@ export default function Home() {
     <div className="flex min-h-screen flex-col bg-background">
       <AppHeader />
       <main className="flex-1">
-        <div className="container mx-auto px-4 py-8 md:px-8 md:py-12">
+        <div className="container mx-auto px-6 py-8 md:px-8 md:py-12">
           <div className="mx-auto max-w-7xl">
             <div className="mb-12 text-center">
-              <h1 className="font-headline text-4xl font-bold tracking-tight text-foreground md:text-5xl">
+              <h1 className="font-headline text-4xl font-semibold tracking-wide text-foreground md:text-4xl lg:text-5xl">
                 Descubre el Maridaje de Vino Perfecto
               </h1>
-              <p className="mt-4 text-lg text-muted-foreground">
+              <p className="mt-4 text-base leading-relaxed text-muted-foreground">
                 Cuéntanos sobre tu plato y nuestro sommelier de IA encontrará su vino ideal.
               </p>
             </div>
 
             <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-16">
-              <div className="top-24 w-full lg:sticky">
-                <DishForm onSubmit={handleGetRecommendation} isLoading={isLoading} />
+              <div className="relative top-24 w-full lg:sticky">
+                <div className="bg-card p-6 rounded-2xl shadow-lg z-10">
+                  <DishForm onSubmit={handleGetRecommendation} isLoading={isLoading} />
+                </div>
               </div>
 
               <div className="min-h-[60vh] rounded-lg">
