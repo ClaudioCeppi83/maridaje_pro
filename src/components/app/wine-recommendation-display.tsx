@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { AlertCircle, Grape, Thermometer, Wine, BrainCircuit, Sparkles, ListTree, Info, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type PairingResult = {
   recommendation: GenerateWineRecommendationOutput;
@@ -109,74 +110,85 @@ export function WineRecommendationDisplay({
   const { recommendation, descriptors, wasDescriptionProvided } = result;
 
   return (
-    <div className="space-y-6 animate-in fade-in-0 duration-500">
-      {!wasDescriptionProvided && (
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertTitle>Aviso</AlertTitle>
-          <AlertDescription>
-            No se proporcionó una descripción detallada del plato. Para una recomendación más precisa, intenta añadir más detalles sobre tu plato.
-          </AlertDescription>
-        </Alert>
-      )}
+    <AnimatePresence mode="wait">
+      {result && (
+        <motion.div
+          key="wine-recommendation"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 50 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="space-y-6"
+        >
+          {!wasDescriptionProvided && (
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertTitle>Aviso</AlertTitle>
+              <AlertDescription>
+                No se proporcionó una descripción detallada del plato. Para una recomendación más precisa, intenta añadir más detalles sobre tu plato.
+              </AlertDescription>
+            </Alert>
+          )}
 
-      <Card className="overflow-hidden border-2 border-primary/20 bg-card shadow-lg shadow-primary/5">
-        <CardHeader className="bg-primary/5">
-          <CardTitle className="font-headline flex items-center gap-3 text-3xl text-primary">
-            <Grape className="h-8 w-8" />
-            <span>{recommendation.recommendedGrapeVarietals}</span>
-          </CardTitle>
-          <CardDescription>
-            Tu cepa de uva recomendada para el maridaje.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="space-y-6">
-            <div>
-              <h3 className="flex items-center gap-2 font-semibold text-lg"><Sparkles className="h-5 w-5 text-accent"/>Notas de Cata</h3>
-              <p className="mt-1 text-muted-foreground">{recommendation.tastingNotes}</p>
-            </div>
-            <Separator />
-            <div>
-              <h3 className="flex items-center gap-2 font-semibold text-lg"><ListTree className="h-5 w-5 text-accent"/>Características Ideales</h3>
-              <p className="mt-1 text-muted-foreground">{recommendation.wineCharacteristics}</p>
-            </div>
-             <Separator />
-            <div>
-              <h3 className="flex items-center gap-2 font-semibold text-lg"><Wine className="h-5 w-5 text-accent"/>Vinos Recomendados</h3>
-              <ul className="mt-2 space-y-2 text-muted-foreground">
-                {recommendation.specificWineExamples.map((wine, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
-                    <span>{wine}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <Card className="overflow-hidden border-2 border-primary/20 bg-card shadow-lg shadow-primary/5">
+            <CardHeader className="bg-primary/5">
+              <CardTitle className="font-headline flex items-center gap-3 text-3xl text-primary">
+                <Grape className="h-8 w-8" />
+                <span>{recommendation.recommendedGrapeVarietals}</span>
+              </CardTitle>
+              <CardDescription>
+                Tu cepa de uva recomendada para el maridaje.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="flex items-center gap-2 font-semibold text-lg"><Sparkles className="h-5 w-5 text-accent"/>Notas de Cata</h3>
+                  <p className="mt-1 text-muted-foreground">{recommendation.tastingNotes}</p>
+                </div>
+                <Separator />
+                <div>
+                  <h3 className="flex items-center gap-2 font-semibold text-lg"><ListTree className="h-5 w-5 text-accent"/>Características Ideales</h3>
+                  <p className="mt-1 text-muted-foreground">{recommendation.wineCharacteristics}</p>
+                </div>
+                 <Separator />
+                <div>
+                  <h3 className="flex items-center gap-2 font-semibold text-lg"><Wine className="h-5 w-5 text-accent"/>Vinos Recomendados</h3>
+                  <ul className="mt-2 space-y-2 text-muted-foreground">
+                    {recommendation.specificWineExamples.map((wine, index) => (
+                      <li key={index} className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" />
+                        <span>{wine}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <InfoCard icon={Thermometer} title="Temperatura de Servicio" value={recommendation.servingTemperature} />
+            <InfoCard icon={Wine} title="Cristalería Recomendada" value={recommendation.suitableGlassware} />
           </div>
-        </CardContent>
-      </Card>
-      
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <InfoCard icon={Thermometer} title="Temperatura de Servicio" value={recommendation.servingTemperature} />
-        <InfoCard icon={Wine} title="Cristalería Recomendada" value={recommendation.suitableGlassware} />
-      </div>
 
-      <Card className="bg-card">
-         <CardHeader>
-           <CardTitle className="font-headline flex items-center gap-3 text-2xl">
-             <BrainCircuit className="h-7 w-7 text-primary" />
-             Razonamiento del Sommelier
-           </CardTitle>
-         </CardHeader>
-         <CardContent>
-            <div className="space-y-4 text-muted-foreground">
-                {descriptors.wineDescriptors.split('\n').filter(p => p.trim()).map((paragraph, index) => (
-                    <p key={index}>{paragraph}</p>
-                ))}
-            </div>
-         </CardContent>
-      </Card>
-    </div>
+          <Card className="bg-card">
+             <CardHeader>
+               <CardTitle className="font-headline flex items-center gap-3 text-2xl">
+                 <BrainCircuit className="h-7 w-7 text-primary" />
+                 Razonamiento del Sommelier
+               </CardTitle>
+             </CardHeader>
+             <CardContent>
+                <div className="space-y-4 text-muted-foreground">
+                    {descriptors.wineDescriptors.split('\n').filter(p => p.trim()).map((paragraph, index) => (
+                        <p key={index}>{paragraph}</p>
+                    ))}
+                </div>
+             </CardContent>
+          </Card>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

@@ -30,35 +30,6 @@ Welcome to Maridaje Pro, an innovative application that leverages AI to find the
 -   [Shadcn/ui](https://ui.shadcn.com/) - Re-usable components built using Radix UI and Tailwind CSS.
 -   [Framer Motion](https://www.framer.com/motion/) - A production-ready motion library for React.
 
-## 🚀 Getting Started
-
-To get a local copy up and running, follow these simple steps.
-
-### Prerequisites
-
--   Node.js (v18 or later)
--   npm, yarn, or pnpm
-
-### Installation
-
-1.  Clone the repo
-    ```sh
-    git clone https://github.com/your_username/maridaje_pro.git
-    ```
-2.  Navigate to the project directory
-    ```sh
-    cd maridaje_pro
-    ```
-3.  Install NPM packages
-    ```sh
-    npm install
-    ```
-4.  Run the development server
-    ```sh
-    npm run dev
-    ```
-5.  Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.

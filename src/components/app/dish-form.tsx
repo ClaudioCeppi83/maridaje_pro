@@ -175,16 +175,18 @@ export function DishForm({ onSubmit, isLoading }: DishFormProps) {
                 )}
               />
 
-              <Button type="submit" disabled={isLoading} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" size="lg">
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Buscando Maridaje...
-                  </>
-                ) : (
-                  'Obtener Recomendación de Vino'
-                )}
-              </Button>
+              <div className="sticky bottom-0 z-50 -mx-6 -mb-6 bg-card p-6 pt-4 lg:static lg:m-0 lg:p-0 lg:bg-transparent">
+                <Button type="submit" disabled={isLoading} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" size="lg">
+                  {isLoading ? (
+                    <>
+                      <img src="/wine_17489637.gif" alt="Loading" className="mr-2 h-6 w-6" />
+                      Buscando el maridaje perfecto...
+                    </>
+                  ) : (
+                    'Obtener Recomendación de Vino'
+                  )}
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>
