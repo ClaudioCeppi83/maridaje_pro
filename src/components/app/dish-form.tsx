@@ -58,6 +58,7 @@ type DishFormProps = {
 };
 
 export function DishForm({ onSubmit, isLoading }: DishFormProps) {
+  console.log('DishForm isLoading:', isLoading);
   const [isInstructionsOpen, setInstructionsOpen] = useState(false);
   const [isOtherCategoryOpen, setOtherCategoryOpen] = useState(false);
   const [otherCategoryValue, setOtherCategoryValue] = useState('');
@@ -81,7 +82,7 @@ export function DishForm({ onSubmit, isLoading }: DishFormProps) {
         form.clearErrors('otherDishCategory');
     }
   };
-  
+
   const handleSaveOtherCategory = () => {
     form.setValue('otherDishCategory', otherCategoryValue);
     if(otherCategoryValue.trim().length > 0) {
@@ -92,7 +93,7 @@ export function DishForm({ onSubmit, isLoading }: DishFormProps) {
 
   return (
     <>
-      <Card className="border-2 border-primary/20 shadow-lg shadow-primary/5">
+      <Card className="border-2 border-primary/20 shadow-lg shadow-primary/5 p-6">
         <CardHeader>
           <CardTitle className="font-headline flex items-center gap-3 text-3xl">
             <ChefHat className="h-8 w-8 text-primary" />
@@ -179,7 +180,7 @@ export function DishForm({ onSubmit, isLoading }: DishFormProps) {
                 <Button type="submit" disabled={isLoading} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" size="lg">
                   {isLoading ? (
                     <>
-                      <img src="/wine_17489637.gif" alt="Loading" className="mr-2 h-6 w-6" />
+                      <dotlottie-wc src="https://lottie.host/c86cdc0a-62d5-4ab9-9cd4-7f4167a0f063/mMmYpk2R4X.lottie" style={{ width: '24px', height: '24px' }} autoplay loop></dotlottie-wc>
                       Buscando el maridaje perfecto...
                     </>
                   ) : (
@@ -199,8 +200,8 @@ export function DishForm({ onSubmit, isLoading }: DishFormProps) {
             <DialogHeader>
                 <DialogTitle>Especificar Categoría</DialogTitle>
             </DialogHeader>
-            <Input 
-                placeholder="p. ej., Brunch, Guarnición" 
+            <Input
+                placeholder="p. ej., Brunch, Guarnición"
                 value={otherCategoryValue}
                 onChange={(e) => setOtherCategoryValue(e.target.value)}
             />

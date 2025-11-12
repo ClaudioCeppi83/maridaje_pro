@@ -43,12 +43,12 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex flex-col bg-background lg:h-screen">
       <AppHeader />
       <main className="flex-1">
         <div className="container mx-auto px-6 py-8 md:px-8 md:py-12">
           <div className="mx-auto max-w-7xl">
-            <div className="mb-12 text-center">
+            <div className="mb-8 text-center">
               <h1 className="font-headline text-4xl font-semibold tracking-wide text-foreground md:text-4xl lg:text-5xl">
                 Descubre el Maridaje de Vino Perfecto
               </h1>
@@ -57,14 +57,14 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-16">
-              <div className="relative top-24 w-full lg:sticky">
-                <div className="bg-card p-6 rounded-2xl shadow-lg z-10">
-                  <DishForm onSubmit={handleGetRecommendation} isLoading={isLoading} />
+            <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-2 lg:gap-16">
+              <div className="w-full">
+                <div className="bg-card rounded-2xl shadow-lg z-10">
+                  <DishForm key={isLoading ? 'loading-form' : 'dish-form'} onSubmit={handleGetRecommendation} isLoading={isLoading} />
                 </div>
               </div>
 
-              <div className="min-h-[60vh] rounded-lg">
+              <div className="rounded-lg">
                 <WineRecommendationDisplay
                   result={result}
                   isLoading={isLoading}
@@ -77,7 +77,7 @@ export default function Home() {
         </div>
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>Impulsado por IA. Disfruta con responsabilidad.</p>
+        <p>Creado por Claudio Ceppi. Disfruta con responsabilidad.</p>
       </footer>
     </div>
   );

@@ -14,7 +14,7 @@ Welcome to Maridaje Pro, an innovative application that leverages AI to find the
     *   **Responsive Design**: Optimized for mobile (up to 6.7 inches), tablets (up to 12 inches), and desktops, ensuring a seamless experience across devices.
 -   **Interactive Elements**:
     *   **Elegant Autofocus**: Input fields illuminate with a subtle gradient on focus.
-    *   **Animated Loading State**: A minimalist animated wine glass icon and updated text ("Buscando el maridaje perfecto...") during AI processing.
+    *   **Animated Loading State**: Uses a Lottie animation for a smooth, scalable loading indicator.
     *   **Dynamic Result Transition**: Wine recommendations appear with a smooth vertical "reveal" animation.
 -   **Simple & Intuitive Interface**: A clean and easy-to-use form to enter your dish details.
 -   **Instant Results**: Get wine recommendations in seconds.
@@ -29,6 +29,7 @@ Welcome to Maridaje Pro, an innovative application that leverages AI to find the
 -   [Google AI Genkit](https://firebase.google.com/docs/genkit) - AI framework for building and deploying generative AI features
 -   [Shadcn/ui](https://ui.shadcn.com/) - Re-usable components built using Radix UI and Tailwind CSS.
 -   [Framer Motion](https://www.framer.com/motion/) - A production-ready motion library for React.
+-   [LottieFiles](https://lottiefiles.com/) - For animated icons.
 
 ## 📄 License
 

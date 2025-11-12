@@ -40,38 +40,30 @@ function InfoCard({ icon, title, value }: { icon: React.ElementType, title: stri
 
 function LoadingSkeleton() {
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-8 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-5/6" />
-        </CardContent>
-      </Card>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-      </div>
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-1/3" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-4/5" />
-        </CardContent>
-      </Card>
+    <div className="flex h-full flex-col items-center justify-center space-y-4">
+      <dotlottie-wc src="https://lottie.host/c86cdc0a-62d5-4ab9-9cd4-7f4167a0f063/mMmYpk2R4X.lottie" style={{ width: '300px', height: '300px' }} autoplay loop></dotlottie-wc>
+      <motion.p
+        key="loading-text"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: [0, 1, 0.5, 1], y: 0 }}
+        transition={{
+          duration: 1.5,
+          delay: 0.2,
+          ease: "easeInOut",
+          repeat: Infinity,
+          repeatType: "reverse",
+        }}
+        className="text-lg font-semibold text-muted-foreground"
+      >
+        Preparando Maridaje para usted
+      </motion.p>
     </div>
   );
 }
 
 function WelcomeScreen() {
     return (
-        <div className="flex h-full min-h-[50vh] items-center justify-center rounded-lg border-2 border-dashed border-border">
+        <div className="flex h-full items-center justify-center rounded-2xl border-2 border-dashed border-border">
             <div className="text-center">
                 <div className="inline-block rounded-full bg-primary/10 p-4 text-primary">
                     <Wine className="h-12 w-12" />
@@ -118,7 +110,7 @@ export function WineRecommendationDisplay({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 50 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
-          className="space-y-6"
+          className="space-y-6 p-6"
         >
           {!wasDescriptionProvided && (
             <Alert>
