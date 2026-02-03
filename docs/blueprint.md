@@ -1,19 +1,16 @@
 # **App Name**: Maridaje Pro
 
-## Core Features
+## Core Features (Actualizadas)
 
-- Dish Input: Users can input a dish name and a detailed description of its ingredients, flavors, and cooking methods, along with a category selector (e.g., 'appetizer', 'main course', 'dessert'). Category selection is mandatory; 'other' category triggers a popup for specification. Description is optional but absence will result in a recommendation disclaimer.
-- Wine Recommendation: AI generates a wine recommendation, specifying the grape varietal(s), ideal characteristics (e.g., acidity, tannins, sweetness, body), and tasting notes that would complement the dish.
-- Wine Descriptor Tool: The AI reasons whether a wine requires attributes such as fruitiness, earthiness, or spice level that enhances the pairing, based on an understanding of flavor complementarity.
-- Detailed Wine Profile: Display of the generated ideal wine profile. Provide information on recommended serving temperature, and suitable glassware.
-- Description Instructions Pop-up: A button that launches a pop-up with instructions for writing the dish description, according to the established prompt.
+- **BYOK (Bring Your Own Key)**: Los usuarios utilizan su propia cuota de Google AI mediante autenticación OAuth de Google.
+- **Modelos de IA**: Uso de **Gemini 2.5 Flash** para alta velocidad y precisión en las recomendaciones.
+- **Dish Input**: Ingreso de nombre del plato, descripción opcional y categoría obligatoria.
+- **Wine Recommendation**: Generación de recomendaciones específicas (uvas, ejemplos reales, notas de cata).
+- **Wine Descriptor Tool**: Razonamiento detallado del sommelier sobre el perfil del vino ideal.
+- **Profile Detallado**: Información sobre temperatura de servicio y cristalería adecuada.
 
-## Style Guidelines
+## Style Guidelines (Actualizadas)
 
-- Primary color: Earthy terracotta (#E07A5F) evoking warmth and appetite.
-- Background color: Light beige (#F5F5DC) for a clean and appetizing feel.
-- Accent color: Olive green (#6B8E23) to highlight key information and CTAs, connecting to fresh ingredients.
-- Headline font: 'Lora', serif, for a sophisticated and readable feel; body font: 'Open Sans', sans-serif, for clarity.
-- Elegant line icons representing wine characteristics and food types, with a modern twist.
-- Clean and structured layout, prioritizing readability of dish and wine descriptions, with ample white space.
-- Subtle transitions and animations to enhance user engagement without being distracting, such as a smooth fade-in for wine recommendations.
+- **Colores**: Beige claro (#F5F5DC), Verde Salvia y Borgoña suave para un sentimiento premium.
+- **Tipografía**: 'Inter' para una legibilidad moderna y limpia.
+- **Animaciones**: Transiciones suaves y micro-animaciones (Framer Motion + Lottie) para una experiencia premium.

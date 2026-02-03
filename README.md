@@ -43,4 +43,3 @@ La aplicación está lista para ser desplegada en plataformas como **Netlify** o
 ## 📄 Licencia
 
 Distribuido bajo la Licencia MIT. Consulta `LICENSE` para más información.
-
