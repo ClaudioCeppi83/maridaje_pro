@@ -9,6 +9,7 @@ import {
   describeWineDescriptors,
   type DescribeWineDescriptorsInput,
 } from '@/ai/flows/describe-wine-descriptors';
+import { auth } from "@/auth";
 
 const FormSchema = z.object({
   dishName: z.string(),
@@ -19,12 +20,17 @@ const FormSchema = z.object({
 
 export async function getWinePairing(data: z.infer<typeof FormSchema>) {
   try {
+    const session = await auth();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userToken = (session as any)?.accessToken as string | undefined;
+
     const { dishName, dishDescription, dishCategory, otherDishCategory } = data;
 
     const recommendationInput: GenerateWineRecommendationInput = {
       dishName,
       dishDescription,
       dishCategory,
+      userToken,
     };
     if (dishCategory === 'other' && otherDishCategory) {
       recommendationInput.otherDishCategory = otherDishCategory;
@@ -37,6 +43,7 @@ export async function getWinePairing(data: z.infer<typeof FormSchema>) {
         dishCategory === 'other' && otherDishCategory
           ? otherDishCategory
           : dishCategory,
+      userToken,
     };
 
     const [recommendationResult, descriptorsResult] = await Promise.all([
@@ -50,8 +57,15 @@ export async function getWinePairing(data: z.infer<typeof FormSchema>) {
       wasDescriptionProvided: !!dishDescription,
       error: null,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting wine pairing:', error);
-    return { error: 'No se pudo generar la recomendación. Es posible que el modelo de IA no esté disponible. Por favor, inténtalo de nuevo más tarde.' };
+    if (error?.message) console.error('Error Message:', error.message);
+    if (error?.response) {
+        console.error('Error Response:', JSON.stringify(error.response, null, 2));
+    }
+    // Check if it's a candidate safety error or other specific API error structure
+    if (error?.statusText) console.error('Error Status:', error.statusText);
+    
+    return { error: `No se pudo generar la recomendación. Error: ${error.message || 'Desconocido'}` };
   }
 }

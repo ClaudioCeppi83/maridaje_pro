@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const DescribeWineDescriptorsInputSchema = z.object({
   dishName: z.string().describe('The name of the dish.'),
@@ -22,6 +23,7 @@ const DescribeWineDescriptorsInputSchema = z.object({
     .describe(
       "The category of the dish (e.g., 'appetizer', 'main course', 'dessert'). If 'other', a specific category must be provided."
     ),
+  userToken: z.string().optional().describe('Google OAuth Access Token for BYOK'),
 });
 export type DescribeWineDescriptorsInput = z.infer<typeof DescribeWineDescriptorsInputSchema>;
 
@@ -34,11 +36,7 @@ export async function describeWineDescriptors(input: DescribeWineDescriptorsInpu
   return describeWineDescriptorsFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'describeWineDescriptorsPrompt',
-  input: {schema: DescribeWineDescriptorsInputSchema},
-  output: {schema: DescribeWineDescriptorsOutputSchema},
-  prompt: `Eres un sommelier experto con 20 años de experiencia en maridajes gastronómicos. Tu tarea es proporcionar un análisis profundo y educativo sobre las características ideales del vino que complementaría un plato específico.
+const PROMPT_TEMPLATE = `Eres un sommelier experto con 20 años de experiencia en maridajes gastronómicos. Tu tarea es proporcionar un análisis profundo y educativo sobre las características ideales del vino que complementaría un plato específico.
 
 INFORMACIÓN DEL PLATO:
 - Nombre: {{{dishName}}}
@@ -89,7 +87,13 @@ EJEMPLO DE ESTRUCTURA (NO COPIES, SOLO SIGUE EL FORMATO):
 
 El perfil frutal debe tender hacia [tipo de frutas], ya que estas notas [explica la razón específica relacionada con el plato]..."
 
-Genera ahora el razonamiento detallado del sommelier:`,
+Genera ahora el razonamiento detallado del sommelier. Responde ÚNICAMENTE con el objeto JSON.`;
+
+const prompt = ai.definePrompt({
+  name: 'describeWineDescriptorsPrompt',
+  input: {schema: DescribeWineDescriptorsInputSchema},
+  output: {schema: DescribeWineDescriptorsOutputSchema},
+  prompt: PROMPT_TEMPLATE,
 });
 
 const describeWineDescriptorsFlow = ai.defineFlow(
@@ -99,7 +103,69 @@ const describeWineDescriptorsFlow = ai.defineFlow(
     outputSchema: DescribeWineDescriptorsOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    if (input.userToken) {
+        // BYOK Path: Use direct REST API with OAuth Token (SDK expects API Key)
+        try {
+            const MODEL_ID = "gemini-2.5-flash"; 
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent`;
+
+            const categoryText = input.dishCategory;
+            const descriptionText = input.dishDescription 
+                ? input.dishDescription 
+                : "Sin descripción detallada.";
+
+            const fullPrompt = `Eres un sommelier experto con 20 años de experiencia.
+            
+INFORMACIÓN DEL PLATO:
+- Nombre: ${input.dishName}
+- Categoría: ${categoryText}
+- Descripción: ${descriptionText}
+
+INSTRUCCIONES:
+Analiza el plato y explica las características ideales del vino para acompañarlo.
+Genera un objeto JSON con la propiedad 'wineDescriptors' (string), donde describas las características (fruta, acidez, cuerpo, etc.) en texto fluido y persuasivo, separado por párrafos.
+
+IMPORTANTE: Responde ÚNICAMENTE con el objeto JSON válido.`;
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${input.userToken}`
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: fullPrompt }]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json"
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`Gemini API Error: ${response.status} ${response.statusText} - ${errorBody}`);
+            }
+
+            const data = await response.json();
+            
+            // Extract text from standard Gemini response structure
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            
+            if (!text) {
+                throw new Error("Empty response from Gemini API");
+            }
+            
+            const json = JSON.parse(text);
+            return DescribeWineDescriptorsOutputSchema.parse(json);
+        } catch (e: any) {
+             console.error("BYOK Generation failed (descriptors):", e);
+             throw new Error(`Failed to generate descriptors with user credentials: ${e.message}`);
+        }
+    } else {
+        const {output} = await prompt(input);
+        return output!;
+    }
   }
 );

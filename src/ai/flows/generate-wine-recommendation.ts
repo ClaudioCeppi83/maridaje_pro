@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const GenerateWineRecommendationInputSchema = z.object({
   dishName: z.string().describe('The name of the dish.'),
@@ -23,6 +24,7 @@ const GenerateWineRecommendationInputSchema = z.object({
     .enum(['appetizer', 'main course', 'dessert', 'other'])
     .describe('The category of the dish.'),
   otherDishCategory: z.string().optional().describe('Specification if dish category is other'),
+  userToken: z.string().optional().describe('Google OAuth Access Token for BYOK'),
 });
 export type GenerateWineRecommendationInput = z.infer<typeof GenerateWineRecommendationInputSchema>;
 
@@ -42,11 +44,7 @@ export async function generateWineRecommendation(
   return generateWineRecommendationFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'generateWineRecommendationPrompt',
-  input: {schema: GenerateWineRecommendationInputSchema},
-  output: {schema: GenerateWineRecommendationOutputSchema},
-  prompt: `Eres un sommelier profesional con 20 años de experiencia, encargado de proporcionar recomendaciones concretas y accionables de maridaje de vinos. Tu objetivo es dar al usuario información específica que pueda usar inmediatamente.
+const PROMPT_TEMPLATE = `Eres un sommelier profesional con 20 años de experiencia, encargado de proporcionar recomendaciones concretas y accionables de maridaje de vinos. Tu objetivo es dar al usuario información específica que pueda usar inmediatamente.
 
 INFORMACIÓN DEL PLATO:
 - Nombre: {{{dishName}}}
@@ -106,10 +104,16 @@ CRÍTICO:
 - SIEMPRE incluye unidades en servingTemperature (°C)
 - El array specificWineExamples debe contener entre 2 y 3 elementos
 
-Aquí está la descripción del esquema de salida:
-{{outputSchemaDescription}}
+Responde ÚNICAMENTE con el objeto JSON. NO incluyas bloques de código markdown (\`\`\`json).`;
 
-Genera ahora la recomendación en formato JSON:`,
+// Fallback prompt definition for Genkit server usage (if standard setup is preserved)
+const prompt = ai.definePrompt({
+  name: 'generateWineRecommendationPrompt',
+  input: {schema: GenerateWineRecommendationInputSchema},
+  output: {schema: GenerateWineRecommendationOutputSchema},
+  prompt: PROMPT_TEMPLATE, // reusing template logic might require Handlebars compliance check if manual interpolation differs. 
+  // Wait, Genkit prompt definitions use Handlebars syntax. 
+  // Manual string interpolation below needs to match or we use a helper.
 });
 
 const generateWineRecommendationFlow = ai.defineFlow(
@@ -119,7 +123,66 @@ const generateWineRecommendationFlow = ai.defineFlow(
     outputSchema: GenerateWineRecommendationOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    if (input.userToken) {
+        // BYOK Path: Use direct REST API with OAuth Token (SDK expects API Key)
+        try {
+            // Updated to gemini-1.5-flash for maximum stability with OAuth, 
+            // as 2.5 might have specific preview restrictions.
+            const MODEL_ID = "gemini-2.5-flash"; 
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent`;
+
+            // Clean interpolation of the rich template
+            const fullPrompt = `${PROMPT_TEMPLATE.replace('{{{dishName}}}', input.dishName)
+                .replace('{{{dishCategory}}}', input.dishCategory)
+                .replace('{{#if otherDishCategory}}', input.otherDishCategory ? '' : '<!--')
+                .replace('({{{otherDishCategory}}})', input.otherDishCategory ? `(${input.otherDishCategory})` : '')
+                .replace('{{#if dishDescription}}', input.dishDescription ? '' : '<!--')
+                .replace('{{else}}', input.dishDescription ? '<!--' : '')
+                .replace('{{/if}}', '-->')
+                .replace('{{{dishDescription}}}', input.dishDescription || '')}
+            
+            IMPORTANTE: Responde ÚNICAMENTE con el objeto JSON.`;
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${input.userToken}`
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: fullPrompt }]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json"
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`Gemini API Error: ${response.status} ${response.statusText} - ${errorBody}`);
+            }
+
+            const data = await response.json();
+            
+            // Extract text from standard Gemini response structure
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            
+            if (!text) {
+                throw new Error("Empty response from Gemini API");
+            }
+            
+            // Validate and parse JSON
+            const json = JSON.parse(text);
+            return GenerateWineRecommendationOutputSchema.parse(json);
+        } catch (e: any) {
+            console.error("BYOK Generation failed (recommendation):", e);
+            throw new Error(`Failed to generate recommendation with user credentials: ${e.message}`);
+        }
+    } else {
+        const {output} = await prompt(input);
+        return output!;
+    }
   }
 );

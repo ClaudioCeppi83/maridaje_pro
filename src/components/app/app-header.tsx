@@ -1,7 +1,11 @@
 import { Wine } from 'lucide-react';
 import Link from 'next/link';
+import { auth } from "@/auth"
+import { UserButton, SignIn } from "@/components/auth/auth-components"
 
-export function AppHeader() {
+export async function AppHeader() {
+  const session = await auth()
+
   return (
     <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
@@ -11,6 +15,13 @@ export function AppHeader() {
             Maridaje Pro
           </span>
         </Link>
+        <div className="flex items-center gap-4">
+          {session?.user ? (
+            <UserButton user={session.user} />
+          ) : (
+            <SignIn />
+          )}
+        </div>
       </div>
     </header>
   );

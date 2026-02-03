@@ -24,9 +24,10 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Info, ChefHat } from 'lucide-react';
+import { Loader2, Info, ChefHat, Lock } from 'lucide-react';
 import { DescriptionInstructionsDialog } from './description-instructions-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { SignIn } from '@/components/auth/auth-components';
 
 const formSchema = z
   .object({
@@ -55,9 +56,10 @@ export type DishFormValues = z.infer<typeof formSchema>;
 type DishFormProps = {
   onSubmit: (values: DishFormValues) => void;
   isLoading: boolean;
+  isAuthenticated: boolean;
 };
 
-export function DishForm({ onSubmit, isLoading }: DishFormProps) {
+export function DishForm({ onSubmit, isLoading, isAuthenticated }: DishFormProps) {
   console.log('DishForm isLoading:', isLoading);
   const [isInstructionsOpen, setInstructionsOpen] = useState(false);
   const [isOtherCategoryOpen, setOtherCategoryOpen] = useState(false);
@@ -74,26 +76,46 @@ export function DishForm({ onSubmit, isLoading }: DishFormProps) {
   });
 
   const handleCategoryChange = (value: string) => {
-    form.setValue('dishCategory', value as DishFormValues['dishCategory']);
+    form.setValue('dishCategory', value as DishFormValues['dishCategory'], { 
+      shouldValidate: true 
+    });
+    
     if (value === 'other') {
       setOtherCategoryOpen(true);
     } else {
-        form.setValue('otherDishCategory', '');
-        form.clearErrors('otherDishCategory');
+      form.setValue('otherDishCategory', '');
+      form.clearErrors('otherDishCategory');
+      setOtherCategoryValue('');
     }
   };
 
   const handleSaveOtherCategory = () => {
-    form.setValue('otherDishCategory', otherCategoryValue);
-    if(otherCategoryValue.trim().length > 0) {
-        form.clearErrors('otherDishCategory');
-    }
+    const trimmed = otherCategoryValue.trim();
+    form.setValue('otherDishCategory', trimmed, { 
+      shouldValidate: true 
+    });
     setOtherCategoryOpen(false);
   }
 
   return (
     <>
-      <Card className="border-2 border-primary/20 shadow-lg shadow-primary/5 p-6">
+      <Card className="border-2 border-primary/20 shadow-lg shadow-primary/5 p-6 relative overflow-hidden">
+        
+        {!isAuthenticated && (
+           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/60 backdrop-blur-[1px]">
+             <div className="rounded-xl border bg-card p-6 shadow-xl text-center max-w-sm mx-4">
+                <Lock className="mx-auto h-10 w-10 text-primary mb-4" />
+                <h3 className="text-xl font-bold mb-2">Inicia Sesión para Usar</h3>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Conecta tu cuenta de Google para obtener recomendaciones ilimitadas del Sommelier IA.
+                </p>
+                <div className="w-full">
+                  <SignIn className="w-full" size="lg" />
+                </div>
+             </div>
+           </div>
+        )}
+
         <CardHeader>
           <CardTitle className="font-headline flex items-center gap-3 text-3xl">
             <ChefHat className="h-8 w-8 text-primary" />
@@ -110,7 +132,11 @@ export function DishForm({ onSubmit, isLoading }: DishFormProps) {
                   <FormItem>
                     <FormLabel>Nombre del Plato</FormLabel>
                     <FormControl>
-                      <Input placeholder="p. ej., Osso Buco alla Milanese" {...field} />
+                      <Input 
+                        placeholder="p. ej., Osso Buco alla Milanese" 
+                        disabled={!isAuthenticated}
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -123,7 +149,14 @@ export function DishForm({ onSubmit, isLoading }: DishFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Categoría del Plato</FormLabel>
-                    <Select onValueChange={handleCategoryChange} defaultValue={field.value}>
+                    <Select 
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        handleCategoryChange(val);
+                      }} 
+                      value={field.value} 
+                      disabled={!isAuthenticated}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecciona una categoría" />
@@ -136,7 +169,7 @@ export function DishForm({ onSubmit, isLoading }: DishFormProps) {
                         <SelectItem value="other">Otro...</SelectItem>
                       </SelectContent>
                     </Select>
-                     {form.watch('dishCategory') === 'other' && form.watch('otherDishCategory') && (
+                      {field.value === 'other' && form.watch('otherDishCategory') && (
                       <FormDescription>
                         Categoría: {form.watch('otherDishCategory')}
                       </FormDescription>
@@ -159,6 +192,7 @@ export function DishForm({ onSubmit, isLoading }: DishFormProps) {
                         size="sm"
                         className="h-auto p-0 text-accent"
                         onClick={() => setInstructionsOpen(true)}
+                        disabled={!isAuthenticated}
                       >
                         <Info className="mr-1 h-4 w-4" />
                         ¿Cómo describir?
@@ -168,6 +202,7 @@ export function DishForm({ onSubmit, isLoading }: DishFormProps) {
                       <Textarea
                         placeholder="Describe los ingredientes, sabores y método de cocción..."
                         className="min-h-[120px] resize-y"
+                        disabled={!isAuthenticated}
                         {...field}
                       />
                     </FormControl>
@@ -176,8 +211,8 @@ export function DishForm({ onSubmit, isLoading }: DishFormProps) {
                 )}
               />
 
-              <div className="sticky bottom-0 z-50 -mx-6 -mb-6 bg-card p-6 pt-4 lg:static lg:m-0 lg:p-0 lg:bg-transparent">
-                <Button type="submit" disabled={isLoading} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" size="lg">
+              <div className="sticky bottom-0 z-10 -mx-6 -mb-6 bg-card p-6 pt-4 lg:static lg:m-0 lg:p-0 lg:bg-transparent">
+                <Button type="submit" disabled={isLoading || !isAuthenticated} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" size="lg">
                   {isLoading ? (
                     <>
                       <dotlottie-wc src="https://lottie.host/c86cdc0a-62d5-4ab9-9cd4-7f4167a0f063/mMmYpk2R4X.lottie" style={{ width: '24px', height: '24px' }} autoplay loop></dotlottie-wc>
