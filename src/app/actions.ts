@@ -10,12 +10,14 @@ import {
   type DescribeWineDescriptorsInput,
 } from '@/ai/flows/describe-wine-descriptors';
 import { auth } from "@/auth";
+import { getWineCellar, getUserProfile } from "./actions/user";
 
 const FormSchema = z.object({
   dishName: z.string(),
   dishDescription: z.string().optional(),
   dishCategory: z.enum(['appetizer', 'main course', 'dessert', 'other']),
   otherDishCategory: z.string().optional(),
+  useCellar: z.boolean().optional(),
 });
 
 export async function getWinePairing(data: z.infer<typeof FormSchema>) {
@@ -24,6 +26,16 @@ export async function getWinePairing(data: z.infer<typeof FormSchema>) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const userToken = (session as any)?.accessToken as string | undefined;
 
+    let availableWines: string[] | undefined = undefined;
+    
+    // If user is logged in, we check if they want to use their cellar
+    if (session?.user?.id) {
+        const profile = await getUserProfile();
+        if (profile?.isCellarModeEnabled || data.useCellar) {
+            availableWines = await getWineCellar();
+        }
+    }
+
     const { dishName, dishDescription, dishCategory, otherDishCategory } = data;
 
     const recommendationInput: GenerateWineRecommendationInput = {
@@ -31,6 +43,7 @@ export async function getWinePairing(data: z.infer<typeof FormSchema>) {
       dishDescription,
       dishCategory,
       userToken,
+      availableWines,
     };
     if (dishCategory === 'other' && otherDishCategory) {
       recommendationInput.otherDishCategory = otherDishCategory;
@@ -55,6 +68,9 @@ export async function getWinePairing(data: z.infer<typeof FormSchema>) {
       recommendation: recommendationResult,
       descriptors: descriptorsResult,
       wasDescriptionProvided: !!dishDescription,
+      dishName,
+      dishDescription,
+      dishCategory: dishCategory === 'other' ? otherDishCategory : dishCategory,
       error: null,
     };
   } catch (error: any) {

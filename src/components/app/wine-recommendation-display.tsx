@@ -1,19 +1,27 @@
-
 'use client';
 
+import { useState } from 'react';
 import type { GenerateWineRecommendationOutput } from '@/ai/flows/generate-wine-recommendation';
 import type { DescribeWineDescriptorsOutput } from '@/ai/flows/describe-wine-descriptors';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { AlertCircle, Grape, Thermometer, Wine, BrainCircuit, Sparkles, ListTree, Info, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
+import { 
+  AlertCircle, Grape, Thermometer, Wine, BrainCircuit, Sparkles, 
+  ListTree, Info, Check, Share2, Save, Loader2 
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { savePairing } from '@/app/actions/user';
 
 type PairingResult = {
   recommendation: GenerateWineRecommendationOutput;
   descriptors: DescribeWineDescriptorsOutput;
   wasDescriptionProvided: boolean;
+  dishName?: string;
+  dishDescription?: string;
+  dishCategory?: string;
 };
 
 type WineRecommendationDisplayProps = {
@@ -21,6 +29,7 @@ type WineRecommendationDisplayProps = {
   isLoading: boolean;
   error: string | null;
   formSubmitted: boolean;
+  isAuthenticated: boolean;
 };
 
 function InfoCard({ icon, title, value }: { icon: React.ElementType, title: string, value: string | undefined }) {
@@ -79,8 +88,12 @@ export function WineRecommendationDisplay({
   result,
   isLoading,
   error,
-  formSubmitted
+  formSubmitted,
+  isAuthenticated
 }: WineRecommendationDisplayProps) {
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
   if (isLoading) {
     return <LoadingSkeleton />;
   }
@@ -99,7 +112,34 @@ export function WineRecommendationDisplay({
     return formSubmitted ? null : <WelcomeScreen />;
   }
 
-  const { recommendation, descriptors, wasDescriptionProvided } = result;
+  const { recommendation, descriptors, wasDescriptionProvided, dishName, dishDescription, dishCategory } = result;
+
+  const handleSave = async () => {
+    if (!isAuthenticated) return;
+    setIsSaving(true);
+    try {
+      await savePairing({
+        dishName: dishName || 'Plato sin nombre',
+        dishDescription,
+        dishCategory: dishCategory || 'other',
+        recommendation,
+        descriptors
+      });
+      setIsSaved(true);
+      toast({
+        title: "¡Guardado!",
+        description: "El maridaje se ha guardado en tu historial.",
+      });
+    } catch (saveError) {
+      toast({
+        title: "Error",
+        description: "No se pudo guardar el maridaje.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <AnimatePresence mode="wait">
@@ -112,6 +152,30 @@ export function WineRecommendationDisplay({
           transition={{ duration: 0.7, ease: "easeOut" }}
           className="space-y-6 p-6"
         >
+          <div className="flex justify-between items-center bg-primary/5 p-4 rounded-xl border border-primary/10 transition-all">
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+              <span className="font-semibold text-primary">Resultado Encontrado</span>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Share2 className="h-4 w-4" />
+              </Button>
+              {isAuthenticated && (
+                <Button 
+                  variant={isSaved ? "secondary" : "outline"} 
+                  size="sm" 
+                  className="rounded-full flex gap-2"
+                  onClick={handleSave}
+                  disabled={isSaving || isSaved}
+                >
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : (isSaved ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />)}
+                  {isSaved ? "Guardado" : "Guardar"}
+                </Button>
+              )}
+            </div>
+          </div>
+
           {!wasDescriptionProvided && (
             <Alert>
               <Info className="h-4 w-4" />
@@ -147,7 +211,7 @@ export function WineRecommendationDisplay({
                 <div>
                   <h3 className="flex items-center gap-2 font-semibold text-lg"><Wine className="h-5 w-5 text-accent"/>Vinos Recomendados</h3>
                   <ul className="mt-2 space-y-2 text-muted-foreground">
-                    {recommendation.specificWineExamples.map((wine, index) => (
+                    {recommendation.specificWineExamples.map((wine: string, index: number) => (
                       <li key={index} className="flex items-center gap-2">
                         <Check className="h-4 w-4 text-primary" />
                         <span>{wine}</span>
@@ -173,7 +237,7 @@ export function WineRecommendationDisplay({
              </CardHeader>
              <CardContent>
                 <div className="space-y-4 text-muted-foreground">
-                    {descriptors.wineDescriptors.split('\n').filter(p => p.trim()).map((paragraph, index) => (
+                    {descriptors.wineDescriptors.split('\n').filter((p: string) => p.trim()).map((paragraph: string, index: number) => (
                         <p key={index}>{paragraph}</p>
                     ))}
                 </div>

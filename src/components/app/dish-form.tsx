@@ -24,7 +24,8 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Info, ChefHat, Lock } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Loader2, Info, ChefHat, Lock, Wine } from 'lucide-react';
 import { DescriptionInstructionsDialog } from './description-instructions-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { SignIn } from '@/components/auth/auth-components';
@@ -37,6 +38,7 @@ const formSchema = z
       required_error: 'Por favor selecciona una categoría de plato.',
     }),
     otherDishCategory: z.string().optional(),
+    useCellar: z.boolean().default(false),
   })
   .refine(
     (data) => {
@@ -129,7 +131,7 @@ export function DishForm({ onSubmit, isLoading, isAuthenticated }: DishFormProps
                 control={form.control}
                 name="dishName"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem id="dish-name">
                     <FormLabel>Nombre del Plato</FormLabel>
                     <FormControl>
                       <Input 
@@ -147,7 +149,7 @@ export function DishForm({ onSubmit, isLoading, isAuthenticated }: DishFormProps
                 control={form.control}
                 name="dishCategory"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem id="dish-category">
                     <FormLabel>Categoría del Plato</FormLabel>
                     <Select 
                       onValueChange={(val) => {
@@ -183,7 +185,7 @@ export function DishForm({ onSubmit, isLoading, isAuthenticated }: DishFormProps
                 control={form.control}
                 name="dishDescription"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem id="dish-description">
                     <div className="flex items-center justify-between">
                       <FormLabel>Descripción del Plato (Opcional)</FormLabel>
                       <Button
@@ -210,6 +212,32 @@ export function DishForm({ onSubmit, isLoading, isAuthenticated }: DishFormProps
                   </FormItem>
                 )}
               />
+
+              {isAuthenticated && (
+                <FormField
+                  control={form.control}
+                  name="useCellar"
+                  render={({ field }) => (
+                    <FormItem id="use-cellar" className="flex flex-row items-center justify-between rounded-lg border p-4 bg-primary/5 border-primary/20">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base flex items-center gap-2">
+                          <Wine className="w-4 h-4 text-primary" /> Maridar con mi Bodega
+                        </FormLabel>
+                        <FormDescription>
+                          Limitaremos las opciones a los vinos que has guardado en tu perfil.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <div className="sticky bottom-0 z-10 -mx-6 -mb-6 bg-card p-6 pt-4 lg:static lg:m-0 lg:p-0 lg:bg-transparent">
                 <Button type="submit" disabled={isLoading || !isAuthenticated} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" size="lg">

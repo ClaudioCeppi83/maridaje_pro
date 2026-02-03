@@ -1,6 +1,8 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
+import { AuthProvider } from "@/components/auth/session-provider";
+import { AppHeader } from "@/components/app/app-header";
 
 export const metadata: Metadata = {
   title: 'Maridaje Pro',
@@ -21,7 +23,10 @@ export default function RootLayout({
         <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.5/dist/dotlottie-wc.js" type="module"></script>
       </head>
       <body className="font-body antialiased">
-        {children}
+        <AuthProvider>
+          <AppHeader />
+          {children}
+        </AuthProvider>
         <Toaster />
       </body>
     </html>

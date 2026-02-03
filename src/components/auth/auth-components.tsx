@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { signInAction, signOutAction } from "@/lib/auth-actions"
 import { Button } from "@/components/ui/button"
 import {
@@ -63,6 +64,13 @@ export function UserButton({
             </p>
           </div>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/profile" className="flex w-full items-center">
+            <User className="mr-2 h-4 w-4" />
+            Mi Perfil
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <SignOut />

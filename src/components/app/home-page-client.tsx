@@ -14,7 +14,7 @@ type PairingResult = {
   wasDescriptionProvided: boolean;
 };
 
-export function HomePageClient({ isAuthenticated, children }: { isAuthenticated: boolean, children: React.ReactNode }) {
+export function HomePageClient({ isAuthenticated, children }: { isAuthenticated: boolean, children?: React.ReactNode }) {
   const [result, setResult] = useState<PairingResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +74,7 @@ export function HomePageClient({ isAuthenticated, children }: { isAuthenticated:
                   isLoading={isLoading}
                   error={error}
                   formSubmitted={formSubmitted}
+                  isAuthenticated={isAuthenticated}
                 />
               </div>
             </div>

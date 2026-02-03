@@ -36,7 +36,7 @@ export async function describeWineDescriptors(input: DescribeWineDescriptorsInpu
   return describeWineDescriptorsFlow(input);
 }
 
-const PROMPT_TEMPLATE = `Eres un sommelier experto con 20 años de experiencia en maridajes gastronómicos. Tu tarea es proporcionar un análisis profundo y educativo sobre las características ideales del vino que complementaría un plato específico.
+const PROMPT_TEMPLATE = `Eres un sommelier experto de clase mundial en maridajes gastronómicos. Tu tarea es proporcionar un análisis profundo y educativo sobre las características ideales del vino que complementaría un plato específico.
 
 INFORMACIÓN DEL PLATO:
 - Nombre: {{{dishName}}}
@@ -74,7 +74,7 @@ INSTRUCCIONES:
 
 FORMATO DE SALIDA:
 - Escribe en español formal pero accesible
-- Cada descriptor principal debe iniciar en un NUEVO PÁRRAFO (usa \\n para separar párrafos)
+- Cada descriptor principal debe iniciar en un NUEVO PÁRRAFO (usa \n para separar párrafos)
 - Usa un tono educativo y apasionado, como un sommelier compartiendo su expertise
 - Longitud total: 400-600 palabras
 - NO uses listas con viñetas, solo prosa fluida en párrafos
@@ -109,23 +109,15 @@ const describeWineDescriptorsFlow = ai.defineFlow(
             const MODEL_ID = "gemini-2.5-flash"; 
             const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent`;
 
-            const categoryText = input.dishCategory;
-            const descriptionText = input.dishDescription 
-                ? input.dishDescription 
-                : "Sin descripción detallada.";
-
-            const fullPrompt = `Eres un sommelier experto con 20 años de experiencia.
+            // Clean interpolation of the rich template (Unified with local path)
+            const fullPrompt = `${PROMPT_TEMPLATE.replace('{{{dishName}}}', input.dishName)
+                .replace('{{{dishCategory}}}', input.dishCategory)
+                .replace('{{#if dishDescription}}', input.dishDescription ? '' : '<!--')
+                .replace('{{else}}', input.dishDescription ? '<!--' : '')
+                .replace('{{/if}}', '-->')
+                .replace('{{{dishDescription}}}', input.dishDescription || '')}
             
-INFORMACIÓN DEL PLATO:
-- Nombre: ${input.dishName}
-- Categoría: ${categoryText}
-- Descripción: ${descriptionText}
-
-INSTRUCCIONES:
-Analiza el plato y explica las características ideales del vino para acompañarlo.
-Genera un objeto JSON con la propiedad 'wineDescriptors' (string), donde describas las características (fruta, acidez, cuerpo, etc.) en texto fluido y persuasivo, separado por párrafos.
-
-IMPORTANTE: Responde ÚNICAMENTE con el objeto JSON válido.`;
+            IMPORTANTE: Responde ÚNICAMENTE con el objeto JSON.`;
 
             const response = await fetch(API_URL, {
                 method: 'POST',
@@ -138,7 +130,8 @@ IMPORTANTE: Responde ÚNICAMENTE con el objeto JSON válido.`;
                         parts: [{ text: fullPrompt }]
                     }],
                     generationConfig: {
-                        responseMimeType: "application/json"
+                        responseMimeType: "application/json",
+                        temperature: 0.3
                     }
                 })
             });

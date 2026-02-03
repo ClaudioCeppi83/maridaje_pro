@@ -25,6 +25,7 @@ const GenerateWineRecommendationInputSchema = z.object({
     .describe('The category of the dish.'),
   otherDishCategory: z.string().optional().describe('Specification if dish category is other'),
   userToken: z.string().optional().describe('Google OAuth Access Token for BYOK'),
+  availableWines: z.array(z.string()).optional().describe('List of wines available in the user\'s cellar'),
 });
 export type GenerateWineRecommendationInput = z.infer<typeof GenerateWineRecommendationInputSchema>;
 
@@ -44,7 +45,7 @@ export async function generateWineRecommendation(
   return generateWineRecommendationFlow(input);
 }
 
-const PROMPT_TEMPLATE = `Eres un sommelier profesional con 20 años de experiencia, encargado de proporcionar recomendaciones concretas y accionables de maridaje de vinos. Tu objetivo es dar al usuario información específica que pueda usar inmediatamente.
+const PROMPT_TEMPLATE = `Eres un sommelier experto de clase mundial, encargado de proporcionar recomendaciones concretas y accionables de maridaje de vinos. Tu objetivo es dar al usuario información específica que pueda usar inmediatamente.
 
 INFORMACIÓN DEL PLATO:
 - Nombre: {{{dishName}}}
@@ -53,6 +54,14 @@ INFORMACIÓN DEL PLATO:
 - Descripción: {{{dishDescription}}}
 {{else}}
 - NOTA: No se proporcionó descripción detallada. Basa tu recomendación en el nombre y categoría del plato, haciendo las suposiciones razonables de un sommelier experimentado.
+{{/if}}
+
+{{#if availableWines}}
+MI BODEGA (RESTRICCIÓN CRÍTICA):
+El usuario tiene los siguientes vinos disponibles:
+{{{availableWines}}}
+
+INSTRUCCIÓN ESPECIAL: DEBES elegir tu recomendación ÚNICAMENTE de la lista de "MI BODEGA". Si ninguno encaja perfectamente, elige el que mejor armonice de entre los disponibles. Proporciona el razonamiento en las notas de cata de por qué elegiste ese vino de su colección.
 {{/if}}
 
 INSTRUCCIONES:
@@ -65,9 +74,7 @@ Genera una recomendación de vino estructurada en formato JSON con los siguiente
 
 2. **specificWineExamples** (array de 2-3 strings):
    - Proporciona nombres REALES Y ESPECÍFICOS de vinos comerciales
-   - Incluye productor y denominación cuando sea relevante
-   - Menciona el pais de origen del vino
-   - Varía los rangos de precio (accesible, medio, premium) y distingelos con el simbolo $
+   - {{#if availableWines}}Usa exactamente los nombres de la lista "MI BODEGA" que hayas seleccionado.{{else}}Incluye productor y denominación cuando sea relevante. Menciona el pais de origen del vino. Varía los rangos de precio (accesible, medio, premium) y distingelos con el simbolo $.{{/if}}
    - Ejemplo: ["Martín Códax Albariño $$ (Rías Baixas)", "Pazo de Señorans $ (Rías Baixas)", "Lagar de Cervera $$$ (Rías Baixas)"]
 
 3. **wineCharacteristics** (string):
@@ -132,16 +139,32 @@ const generateWineRecommendationFlow = ai.defineFlow(
             const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent`;
 
             // Clean interpolation of the rich template
-            const fullPrompt = `${PROMPT_TEMPLATE.replace('{{{dishName}}}', input.dishName)
+            let fullPrompt = PROMPT_TEMPLATE.replace('{{{dishName}}}', input.dishName)
                 .replace('{{{dishCategory}}}', input.dishCategory)
                 .replace('{{#if otherDishCategory}}', input.otherDishCategory ? '' : '<!--')
                 .replace('({{{otherDishCategory}}})', input.otherDishCategory ? `(${input.otherDishCategory})` : '')
                 .replace('{{#if dishDescription}}', input.dishDescription ? '' : '<!--')
                 .replace('{{else}}', input.dishDescription ? '<!--' : '')
                 .replace('{{/if}}', '-->')
-                .replace('{{{dishDescription}}}', input.dishDescription || '')}
-            
-            IMPORTANTE: Responde ÚNICAMENTE con el objeto JSON.`;
+                .replace('{{{dishDescription}}}', input.dishDescription || '');
+
+            // Handle availableWines section
+            if (input.availableWines && input.availableWines.length > 0) {
+                fullPrompt = fullPrompt.replace('{{#if availableWines}}', '')
+                    .replace('{{{availableWines}}}', input.availableWines.join(', '))
+                    .replace('{{/if}}', '')
+                    .replace('{{#if availableWines}}', '') // 2nd occurrence for specificWineExamples logic
+                    .replace('{{else}}', '<!--')
+                    .replace('{{/if}}', '-->');
+            } else {
+                fullPrompt = fullPrompt.replace('{{#if availableWines}}', '<!--')
+                    .replace('{{/if}}', '-->')
+                    .replace('{{#if availableWines}}', '<!--')
+                    .replace('{{else}}', '')
+                    .replace('{{/if}}', '');
+            }
+
+            fullPrompt += "\n\nIMPORTANTE: Responde ÚNICAMENTE con el objeto JSON.";
 
             const response = await fetch(API_URL, {
                 method: 'POST',
@@ -154,10 +177,12 @@ const generateWineRecommendationFlow = ai.defineFlow(
                         parts: [{ text: fullPrompt }]
                     }],
                     generationConfig: {
-                        responseMimeType: "application/json"
+                        responseMimeType: "application/json",
+                        temperature: 0.3
                     }
                 })
             });
+
 
             if (!response.ok) {
                 const errorBody = await response.text();
