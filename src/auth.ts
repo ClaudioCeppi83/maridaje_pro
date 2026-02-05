@@ -4,7 +4,16 @@ import { db } from "@/lib/firebase/admin"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
-    Google({}),
+    Google({
+      authorization: {
+        params: {
+          scope: "openid profile email https://www.googleapis.com/auth/generative-language.retriever https://www.googleapis.com/auth/generative-language.peruserquota",
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
+    }),
   ],
   trustHost: true,
   // debug: true,

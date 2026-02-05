@@ -87,7 +87,7 @@ EJEMPLO DE ESTRUCTURA (NO COPIES, SOLO SIGUE EL FORMATO):
 
 El perfil frutal debe tender hacia [tipo de frutas], ya que estas notas [explica la razón específica relacionada con el plato]..."
 
-Genera ahora el razonamiento detallado del sommelier. Responde ÚNICAMENTE con el objeto JSON.`;
+Genera ahora el razonamiento detallado del sommelier. Responde ÚNICAMENTE con el objeto JSON con la siguiente estructura: { "wineDescriptors": "..." }`;
 
 const prompt = ai.definePrompt({
   name: 'describeWineDescriptorsPrompt',

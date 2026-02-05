@@ -35,13 +35,13 @@ type WineRecommendationDisplayProps = {
 function InfoCard({ icon, title, value }: { icon: React.ElementType, title: string, value: string | undefined }) {
   const Icon = icon;
   return (
-    <div className="flex items-center gap-4 rounded-lg bg-muted/50 p-4">
-      <div className="rounded-full bg-primary/10 p-2 text-primary">
+    <div className="flex items-center gap-4 rounded-2xl bg-muted/40 p-5 transition-all hover:bg-muted/60 border border-border/50 shadow-sm">
+      <div className="rounded-full bg-primary/10 p-3 text-primary shadow-inner">
         <Icon className="h-6 w-6" />
       </div>
       <div>
-        <p className="text-sm font-semibold text-muted-foreground">{title}</p>
-        <p className="text-lg font-bold">{value || 'N/A'}</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">{title}</p>
+        <p className="text-lg font-bold text-foreground">{value || 'N/A'}</p>
       </div>
     </div>
   );
@@ -72,13 +72,13 @@ function LoadingSkeleton() {
 
 function WelcomeScreen() {
     return (
-        <div className="flex h-full items-center justify-center rounded-2xl border-2 border-dashed border-border">
+        <div className="flex h-full items-center justify-center rounded-3xl border-2 border-dashed border-primary/20 bg-primary/5 p-12 transition-all duration-500 hover:bg-primary/10">
             <div className="text-center">
-                <div className="inline-block rounded-full bg-primary/10 p-4 text-primary">
-                    <Wine className="h-12 w-12" />
+                <div className="inline-block rounded-full bg-primary/20 p-6 text-primary shadow-lg animate-bounce-slow">
+                    <Wine className="h-14 w-14" />
                 </div>
-                <h2 className="mt-4 font-headline text-2xl font-semibold">Tu Maridaje Perfecto te Espera</h2>
-                <p className="mt-2 text-muted-foreground">Completa el formulario para descubrir tu vino ideal.</p>
+                <h2 className="mt-6 font-headline text-3xl font-bold tracking-tight">Tu Maridaje Perfecto te Espera</h2>
+                <p className="mt-3 text-lg text-muted-foreground max-w-sm mx-auto">Completa el formulario para descubrir tu vino ideal con nuestra experta IA.</p>
             </div>
         </div>
     )
@@ -152,10 +152,10 @@ export function WineRecommendationDisplay({
           transition={{ duration: 0.7, ease: "easeOut" }}
           className="space-y-6 p-6"
         >
-          <div className="flex justify-between items-center bg-primary/5 p-4 rounded-xl border border-primary/10 transition-all">
+          <div className="flex justify-between items-center bg-primary/5 p-5 rounded-2xl border border-primary/20 shadow-sm backdrop-blur-sm transition-all">
             <div className="flex items-center gap-3">
               <Sparkles className="h-5 w-5 text-primary animate-pulse" />
-              <span className="font-semibold text-primary">Resultado Encontrado</span>
+              <span className="font-bold text-primary tracking-wide">RESULTADO ENCONTRADO</span>
             </div>
             <div className="flex gap-2">
               <Button variant="ghost" size="icon" className="rounded-full">

@@ -5,8 +5,31 @@ import { AuthProvider } from "@/components/auth/session-provider";
 import { AppHeader } from "@/components/app/app-header";
 
 export const metadata: Metadata = {
-  title: 'Maridaje Pro',
-  description: 'Descubre el maridaje de vino perfecto para cualquier plato.',
+  title: {
+    default: 'Maridaje Pro | Tu Sommelier Personal',
+    template: '%s | Maridaje Pro'
+  },
+  description: 'Encuentra el maridaje de vino perfecto para cualquier plato. Conecta tu bodega personal y recibe recomendaciones adecuadas al instante.',
+  keywords: ['maridaje de vino', 'sommelier ia', 'vinos y comidas', 'bodega personal', 'gemini ai', 'recomendación de vinos'],
+  authors: [{ name: 'Claudio Ceppi' }],
+  creator: 'Claudio Ceppi',
+  openGraph: {
+    type: 'website',
+    locale: 'es_ES',
+    url: 'https://maridajepro.com', // Ajustar según despliegue real
+    title: 'Maridaje Pro | Tu Sommelier Personal',
+    description: 'Encuentra el maridaje de vino perfecto para cualquier plato.',
+    siteName: 'Maridaje Pro',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Maridaje Pro | Tu Sommelier Personal',
+    description: 'Descubre el vino ideal para tu próxima comida.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  }
 };
 
 export default function RootLayout({

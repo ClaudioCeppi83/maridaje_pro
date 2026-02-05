@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --background: 30 80% 99%; /* Lighter Beige */
-    --foreground: 20 14% 10%; /* Dark Brown */
+    --background: 30 80% 99%; /* Off-white / Lighter Beige */
+    --foreground: 20 14% 10%; /* Charcoalish Dark Brown */
     --card: 30 80% 99%;
     --card-foreground: 20 14% 10%;
     --popover: 30 80% 99%;
@@ -23,15 +23,15 @@
     --border: 14 30% 80%;
     --input: 14 30% 84%;
     --ring: 351 45% 33%;
-    --radius: 0.5rem;
+    --radius: 1rem; /* Aumentado para look orgánico (16px) */
   }
 
   .dark {
-    --background: 20 14% 8%;
+    --background: 20 14% 10%; /* Charcoal real (#1A1A1A aproximado) */
     --foreground: 30 80% 99%;
-    --card: 20 14% 8%;
+    --card: 20 14% 10%;
     --card-foreground: 30 80% 99%;
-    --popover: 20 14% 8%;
+    --popover: 20 14% 10%;
     --popover-foreground: 30 80% 99%;
     --primary: 351 45% 33%;
     --primary-foreground: 14 70% 98%;
@@ -59,12 +59,12 @@
 }
 
 .focus-gradient-border:focus-within {
-  box-shadow: 0 0 0 2px hsl(var(--primary)), 0 0 0 4px hsl(var(--primary)) inset;
+  box-shadow:
+    0 0 0 2px hsl(var(--primary)),
+    0 0 0 4px hsl(var(--primary)) inset;
   border-color: transparent; /* Hide original border */
 }
 
 .hover-glow:hover {
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.1); /* Subtle inner white glow */
 }
-
-

@@ -101,7 +101,7 @@ export function DishForm({ onSubmit, isLoading, isAuthenticated }: DishFormProps
 
   return (
     <>
-      <Card className="border-2 border-primary/20 shadow-lg shadow-primary/5 p-6 relative overflow-hidden">
+      <Card className="border-2 border-primary/20 shadow-xl shadow-primary/5 p-8 relative overflow-hidden rounded-2xl bg-card/50 backdrop-blur-sm">
         
         {!isAuthenticated && (
            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/60 backdrop-blur-[1px]">
