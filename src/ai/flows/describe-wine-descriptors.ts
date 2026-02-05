@@ -32,6 +32,13 @@ const DescribeWineDescriptorsOutputSchema = z.object({
 });
 export type DescribeWineDescriptorsOutput = z.infer<typeof DescribeWineDescriptorsOutputSchema>;
 
+/**
+ * Genera un análisis profundo de las características ideales del vino para un plato.
+ * Utiliza el flujo BYOK si el usuario ha proporcionado su propio token.
+ * 
+ * @param {DescribeWineDescriptorsInput} input - Datos del plato a analizar.
+ * @returns {Promise<DescribeWineDescriptorsOutput>} Descripción detallada de los descriptores del vino.
+ */
 export async function describeWineDescriptors(input: DescribeWineDescriptorsInput): Promise<DescribeWineDescriptorsOutput> {
   return describeWineDescriptorsFlow(input);
 }

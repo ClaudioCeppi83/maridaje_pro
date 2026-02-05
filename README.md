@@ -1,6 +1,6 @@
 # Maridaje Pro 🍷
 
-![Version](https://img.shields.io/badge/version-1.3-blue.svg)
+![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)
 
 Maridaje Pro es una aplicación innovadora que utiliza IA para encontrar el maridaje de vino perfecto para cualquier plato. Describe tu comida y nuestra sommelier inteligente te proporcionará una recomendación curada basada en tus preferencias y tu bodega personal.
 

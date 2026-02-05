@@ -62,7 +62,6 @@ type DishFormProps = {
 };
 
 export function DishForm({ onSubmit, isLoading, isAuthenticated }: DishFormProps) {
-  console.log('DishForm isLoading:', isLoading);
   const [isInstructionsOpen, setInstructionsOpen] = useState(false);
   const [isOtherCategoryOpen, setOtherCategoryOpen] = useState(false);
   const [otherCategoryValue, setOtherCategoryValue] = useState('');

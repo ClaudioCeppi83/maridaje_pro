@@ -39,6 +39,13 @@ const GenerateWineRecommendationOutputSchema = z.object({
 });
 export type GenerateWineRecommendationOutput = z.infer<typeof GenerateWineRecommendationOutputSchema>;
 
+/**
+ * Genera una recomendación de vino basada en la descripción de un plato.
+ * Soporta el flujo BYOK si se proporciona un token de usuario de Google.
+ * 
+ * @param {GenerateWineRecommendationInput} input - Datos del plato y disponibilidad de vinos.
+ * @returns {Promise<GenerateWineRecommendationOutput>} Recomendación detallada en formato JSON.
+ */
 export async function generateWineRecommendation(
   input: GenerateWineRecommendationInput
 ): Promise<GenerateWineRecommendationOutput> {
