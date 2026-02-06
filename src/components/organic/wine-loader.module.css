@@ -1,0 +1,68 @@
+.loaderCopa {
+	position: relative;
+	width: 50px;
+	height: 120px;
+}
+
+.copaBowl {
+	width: 50px;
+	height: 60px;
+	border: 3px solid var(--wine-glass-color, hsl(var(--foreground)));
+	border-top: none;
+	border-radius: 0 0 25px 25px;
+	position: relative;
+	overflow: hidden;
+	box-shadow: inset -5px 0 10px rgba(255,255,255,0.1);
+}
+
+.vino {
+	position: absolute;
+	width: 150px; 
+	height: 150px;
+	background-color: var(--wine-liquid-color, hsl(var(--primary)));
+	border-radius: 40%; 
+	left: 50%;
+	top: 100%; 
+	animation: llenarYgirar 4s infinite linear;
+	transform-origin: center center;
+}
+
+.loaderCopa::before {
+	content: '';
+	position: absolute;
+	top: 60px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 4px;
+	height: 35px;
+	background-color: var(--wine-glass-color, hsl(var(--foreground)));
+}
+
+.loaderCopa::after {
+	content: '';
+	position: absolute;
+	top: 95px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 30px;
+	height: 4px;
+	border-radius: 4px;
+	background-color: var(--wine-glass-color, hsl(var(--foreground)));
+}
+
+@keyframes llenarYgirar {
+	0% {
+		top: 100%;
+		transform: translateX(-50%) rotate(0deg);
+	}
+	40% {
+		top: 15%;
+	}
+	60% {
+		top: 15%;
+	}
+	100% {
+		top: 100%;
+		transform: translateX(-50%) rotate(360deg);
+	}
+}

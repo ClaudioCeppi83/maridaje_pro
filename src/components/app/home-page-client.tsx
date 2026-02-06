@@ -5,7 +5,8 @@ import { DishForm } from '@/components/maridaje/dish-form';
 import { PairingResult } from '@/components/maridaje/pairing-result';
 import { getWinePairing } from '@/app/actions';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import { WineLoader } from '@/components/organic/wine-loader';
 import { SignIn } from '@/components/auth/auth-components';
 
 export function HomePageClient({ isAuthenticated }: { isAuthenticated: boolean }) {
@@ -89,9 +90,13 @@ export function HomePageClient({ isAuthenticated }: { isAuthenticated: boolean }
 								initial={{ opacity: 0, scale: 0.9 }}
 								animate={{ opacity: 1, scale: 1 }}
 								exit={{ opacity: 0, scale: 0.9 }}
-								className="mt-12 flex flex-col items-center gap-4 py-8"
+								className="mt-12 flex flex-col items-center gap-6 py-8"
 							>
-								<Loader2 className="w-12 h-12 text-primary animate-spin" />
+								<WineLoader 
+									size="lg" 
+									liquidColor="hsl(var(--primary))" 
+									glassColor="hsl(var(--foreground))" 
+								/>
 								<p className="font-headline text-xl text-primary animate-pulse">Analizando sabores...</p>
 							</motion.div>
 						)}
