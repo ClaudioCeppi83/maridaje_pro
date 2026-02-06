@@ -18,7 +18,6 @@ const FormSchema = z.object({
   dishCategory: z.enum(['appetizer', 'main course', 'dessert', 'other']),
   otherDishCategory: z.string().optional(),
   useCellar: z.boolean().optional(),
-  apiKey: z.string().optional(),
 });
 
 export async function getWinePairing(data: z.infer<typeof FormSchema>) {
@@ -37,14 +36,13 @@ export async function getWinePairing(data: z.infer<typeof FormSchema>) {
         }
     }
 
-    const { dishName, dishDescription, dishCategory, otherDishCategory, apiKey } = data;
+    const { dishName, dishDescription, dishCategory, otherDishCategory } = data;
 
     const recommendationInput: GenerateWineRecommendationInput = {
       dishName,
       dishDescription,
       dishCategory,
       userToken,
-      apiKey,
       availableWines,
     };
     if (dishCategory === 'other' && otherDishCategory) {
@@ -59,7 +57,6 @@ export async function getWinePairing(data: z.infer<typeof FormSchema>) {
           ? otherDishCategory
           : dishCategory,
       userToken,
-      apiKey,
     };
 
     const [recommendationResult, descriptorsResult] = await Promise.all([
@@ -85,6 +82,36 @@ export async function getWinePairing(data: z.infer<typeof FormSchema>) {
     // Check if it's a candidate safety error or other specific API error structure
     if (error?.statusText) console.error('Error Status:', error.statusText);
     
-    return { error: `No se pudo generar la recomendación. Error: ${error.message || 'Desconocido'}` };
+    const errorMessage = error?.message || 'Desconocido';
+    
+    // Check for Quota Exceeded (429) errors from Gemini
+    if (errorMessage.includes('429') || errorMessage.includes('Quota exceeded') || errorMessage.includes('RESOURCE_EXHAUSTED')) {
+      let waitTimeMsg = "un momento";
+      
+      // Try to extract retry time from message "Please retry in Xms"
+      const retryMatch = errorMessage.match(/retry in ([0-9.]+)ms/);
+      if (retryMatch && retryMatch[1]) {
+        const ms = parseFloat(retryMatch[1]);
+        const seconds = Math.ceil(ms / 1000);
+        if (seconds > 60) {
+           const minutes = Math.ceil(seconds / 60);
+           waitTimeMsg = `${minutes} minutos`;
+        } else {
+           waitTimeMsg = `${seconds} segundos`;
+        }
+      }
+
+      return { 
+        error: `Se ha alcanzado el límite de cuota de tu plan de IA.
+        
+Has superado el límite de solicitudes permitidas por tu suscripción actual de Google Gemini.
+
+Considera actualizar tu cuenta en Google Cloud y verifica tus límites de cuota diarios.
+
+• Solución inmediata: Espera ${waitTimeMsg} y vuelve a intentarlo.`
+      };
+    }
+
+    return { error: `No se pudo generar la recomendación. Error: ${errorMessage}` };
   }
 }

@@ -24,7 +24,6 @@ const DescribeWineDescriptorsInputSchema = z.object({
       "The category of the dish (e.g., 'appetizer', 'main course', 'dessert'). If 'other', a specific category must be provided."
     ),
   userToken: z.string().optional().describe('Google OAuth Access Token for BYOK'),
-  apiKey: z.string().optional().describe('Manual Google AI API Key for BYOK'),
 });
 export type DescribeWineDescriptorsInput = z.infer<typeof DescribeWineDescriptorsInputSchema>;
 
@@ -111,14 +110,13 @@ const describeWineDescriptorsFlow = ai.defineFlow(
     outputSchema: DescribeWineDescriptorsOutputSchema,
   },
   async input => {
-    if (input.userToken || input.apiKey) {
+    if (input.userToken) {
         // BYOK Path: Use direct REST API
         try {
             const MODEL_ID = "gemini-2.5-flash"; 
             const baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent`;
-            const API_URL = input.apiKey ? `${baseUrl}?key=${input.apiKey}` : baseUrl;
+            const API_URL = baseUrl;
 
-            // ... (prompt interpolation stays the same)
             const fullPrompt = `${PROMPT_TEMPLATE.replace('{{{dishName}}}', input.dishName)
                 .replace('{{{dishCategory}}}', input.dishCategory)
                 .replace('{{#if dishDescription}}', input.dishDescription ? '' : '<!--')

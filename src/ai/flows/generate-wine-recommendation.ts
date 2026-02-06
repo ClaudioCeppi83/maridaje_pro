@@ -25,7 +25,6 @@ const GenerateWineRecommendationInputSchema = z.object({
     .describe('The category of the dish.'),
   otherDishCategory: z.string().optional().describe('Specification if dish category is other'),
   userToken: z.string().optional().describe('Google OAuth Access Token for BYOK'),
-  apiKey: z.string().optional().describe('Manual Google AI API Key for BYOK'),
   availableWines: z.array(z.string()).optional().describe('List of wines available in the user\'s cellar'),
 });
 export type GenerateWineRecommendationInput = z.infer<typeof GenerateWineRecommendationInputSchema>;
@@ -126,14 +125,11 @@ REGLAS DE ORO:
 
 Responde ÚNICAMENTE con el objeto JSON. NO incluyas bloques de código markdown (\`\`\`json).`;
 
-// Fallback prompt definition for Genkit server usage (if standard setup is preserved)
 const prompt = ai.definePrompt({
   name: 'generateWineRecommendationPrompt',
   input: {schema: GenerateWineRecommendationInputSchema},
   output: {schema: GenerateWineRecommendationOutputSchema},
-  prompt: PROMPT_TEMPLATE, // reusing template logic might require Handlebars compliance check if manual interpolation differs. 
-  // Wait, Genkit prompt definitions use Handlebars syntax. 
-  // Manual string interpolation below needs to match or we use a helper.
+  prompt: PROMPT_TEMPLATE,
 });
 
 const generateWineRecommendationFlow = ai.defineFlow(
@@ -143,16 +139,13 @@ const generateWineRecommendationFlow = ai.defineFlow(
     outputSchema: GenerateWineRecommendationOutputSchema,
   },
   async input => {
-    if (input.userToken || input.apiKey) {
+    if (input.userToken) {
         // BYOK Path: Use direct REST API
         try {
-            // Updated to gemini-1.5-flash for maximum stability with OAuth, 
-            // as 2.5 might have specific preview restrictions.
             const MODEL_ID = "gemini-2.5-flash"; 
             const baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent`;
-            const API_URL = input.apiKey ? `${baseUrl}?key=${input.apiKey}` : baseUrl;
+            const API_URL = baseUrl;
 
-            // ... (prompt interpolation stays the same)
             let fullPrompt = PROMPT_TEMPLATE.replace('{{{dishName}}}', input.dishName)
                 .replace('{{{dishCategory}}}', input.dishCategory)
                 .replace('{{#if otherDishCategory}}', input.otherDishCategory ? '' : '<!--')

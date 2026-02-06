@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DishForm } from '@/components/maridaje/dish-form';
 import { PairingResult } from '@/components/maridaje/pairing-result';
 import { getWinePairing } from '@/app/actions';
@@ -12,6 +12,13 @@ export function HomePageClient({ isAuthenticated }: { isAuthenticated: boolean }
 	const [result, setResult] = useState<any | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			setResult(null);
+			setError(null);
+		}
+	}, [isAuthenticated]);
 
 	const handleGetRecommendation = async (data: any) => {
 		if (!isAuthenticated) {
@@ -104,12 +111,20 @@ export function HomePageClient({ isAuthenticated }: { isAuthenticated: boolean }
 							<motion.div 
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
-								className="w-full"
+								className="w-full flex flex-col items-center"
 							>
 								<PairingResult 
 									recommendation={result.recommendation} 
 									descriptors={result.descriptors}
 								/>
+								<motion.button
+									whileHover={{ scale: 1.02 }}
+									whileTap={{ scale: 0.98 }}
+									onClick={() => setResult(null)}
+									className="mt-8 px-6 py-3 rounded-xl border border-border bg-background text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors flex items-center gap-2"
+								>
+									<span className="text-sm font-medium">Hacer otra consulta</span>
+								</motion.button>
 							</motion.div>
 						)}
 					</AnimatePresence>
