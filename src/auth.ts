@@ -5,6 +5,8 @@ import { db } from "@/lib/firebase/admin"
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Google({
+      clientId: process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET || process.env.GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
           scope: "openid profile email https://www.googleapis.com/auth/generative-language.retriever https://www.googleapis.com/auth/generative-language.peruserquota",
@@ -15,7 +17,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  secret: process.env.AUTH_SECRET,
   trustHost: true,
+  debug: true,
   callbacks: {
     async jwt({ token, account, user }) {
       if (account) {
@@ -38,28 +42,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   events: {
     async signIn({ user }) {
-      if (!user.id || !user.email) return;
+      try {
+        if (!user.id || !user.email) return;
 
-      const userRef = db.collection('users').doc(user.id);
-      const doc = await userRef.get();
+        const userRef = db.collection('users').doc(user.id);
+        const doc = await userRef.get();
 
-      if (!doc.exists) {
-        await userRef.set({
-          id: user.id,
-          email: user.email,
-          displayName: user.name || null,
-          photoURL: user.image || null,
-          isCellarModeEnabled: false,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        });
-      } else {
-        // Optional: Update basic profile info if it changed
-        await userRef.update({
-          displayName: user.name || null,
-          photoURL: user.image || null,
-          updatedAt: Date.now(),
-        });
+        if (!doc.exists) {
+          await userRef.set({
+            id: user.id,
+            email: user.email,
+            displayName: user.name || null,
+            photoURL: user.image || null,
+            isCellarModeEnabled: false,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          });
+        } else {
+          await userRef.update({
+            displayName: user.name || null,
+            photoURL: user.image || null,
+            updatedAt: Date.now(),
+          });
+        }
+      } catch (error) {
+        console.error("Error in signIn event:", error);
       }
     }
   }

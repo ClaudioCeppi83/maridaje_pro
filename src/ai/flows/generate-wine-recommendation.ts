@@ -25,17 +25,32 @@ const GenerateWineRecommendationInputSchema = z.object({
     .describe('The category of the dish.'),
   otherDishCategory: z.string().optional().describe('Specification if dish category is other'),
   userToken: z.string().optional().describe('Google OAuth Access Token for BYOK'),
+  apiKey: z.string().optional().describe('Manual Google AI API Key for BYOK'),
   availableWines: z.array(z.string()).optional().describe('List of wines available in the user\'s cellar'),
 });
 export type GenerateWineRecommendationInput = z.infer<typeof GenerateWineRecommendationInputSchema>;
 
 const GenerateWineRecommendationOutputSchema = z.object({
   recommendedGrapeVarietals: z.string().describe('La(s) cepa(s) de uva recomendada(s).'),
-  specificWineExamples: z.array(z.string()).describe('Una lista de 2 a 3 vinos específicos como ejemplos.'),
-  wineCharacteristics: z.string().describe('Características ideales del vino.'),
-  tastingNotes: z.string().describe('Notas de cata para los vinos recomendados.'),
-  servingTemperature: z.string().describe('Temperatura de servicio recomendada'),
-  suitableGlassware: z.string().describe('Cristalería adecuada para servir'),
+  wineOptions: z.array(z.object({
+    name: z.string().describe('Nombre del vino con productor.'),
+    priceRange: z.enum(['bajo', 'medio', 'alto']).describe('Rango de precio del vino.'),
+    priceHint: z.string().describe('Precio aproximado o símbolo de moneda.'),
+    description: z.string().describe('Breve descripción de por qué este vino específico es una gran opción.'),
+  })).describe('Tres opciones de vino: precio bajo, medio y alto.'),
+  wineCharacteristics: z.object({
+    body: z.string().describe('Cuerpo del vino (ligero, medio, completo).'),
+    tannins: z.string().describe('Nivel de taninos.'),
+    acidity: z.string().describe('Nivel de acidez.'),
+    tonality: z.string().describe('Color y tonalidad visual del vino.'),
+  }).describe('Características técnicas del vino.'),
+  tastingNotes: z.string().describe('Notas de cata descriptivas (texto limpio, sin HTML).'),
+  pairingReason: z.string().describe('Explicación técnica de por qué este maridaje funciona (texto limpio, sin HTML).'),
+  servingTemperature: z.string().describe('Temperatura de servicio recomendada (ej: 16-18°C).'),
+  suitableGlassware: z.object({
+    type: z.string().describe('Tipo de copa (ej: Bordeaux, Borgoña, Tulipa).'),
+    description: z.string().describe('Por qué esta copa es ideal.'),
+  }).describe('Información sobre la cristalería.'),
 });
 export type GenerateWineRecommendationOutput = z.infer<typeof GenerateWineRecommendationOutputSchema>;
 
@@ -68,7 +83,7 @@ MI BODEGA (RESTRICCIÓN CRÍTICA):
 El usuario tiene los siguientes vinos disponibles:
 {{{availableWines}}}
 
-INSTRUCCIÓN ESPECIAL: DEBES elegir tu recomendación ÚNICAMENTE de la lista de "MI BODEGA". Si ninguno encaja perfectamente, elige el que mejor armonice de entre los disponibles. Proporciona el razonamiento en las notas de cata de por qué elegiste ese vino de su colección.
+INSTRUCCIÓN ESPECIAL: DEBES elegir tu recomendación ÚNICAMENTE de la lista de "MI BODEGA". Si ninguno encaja perfectamente, elige el que mejor armonice de entre los disponibles. Proporciona el razonamiento de por qué elegiste esos vinos de su colección.
 {{/if}}
 
 INSTRUCCIONES:
@@ -76,47 +91,38 @@ INSTRUCCIONES:
 Genera una recomendación de vino estructurada en formato JSON con los siguientes campos:
 
 1. **recommendedGrapeVarietals** (string):
-   - Especifica 1-3 variedades de uva principales (ej: "Albariño", "Tempranillo", "Chardonnay y Sauvignon Blanc")
-   - Formato: "Variedad(es)"
+   - Formato: "Nombre de la Cepa - Perfil Descriptivo"
+   - Ejemplo: "Sangiovese - Tinto Vibrante y Frutal".
+   - NO uses paréntesis en el título. Pon la cepa primero en mayúsculas/negrita si es posible (en el texto).
 
-2. **specificWineExamples** (array de 2-3 strings):
-   - Proporciona nombres REALES Y ESPECÍFICOS de vinos comerciales
-   - {{#if availableWines}}Usa exactamente los nombres de la lista "MI BODEGA" que hayas seleccionado.{{else}}Incluye productor y denominación cuando sea relevante. Menciona el pais de origen del vino. Varía los rangos de precio (accesible, medio, premium) y distingelos con el simbolo $.{{/if}}
-   - Ejemplo: ["Martín Códax Albariño $$ (Rías Baixas)", "Pazo de Señorans $ (Rías Baixas)", "Lagar de Cervera $$$ (Rías Baixas)"]
+2. **wineOptions** (array de exactamente 3 objetos):
+   - Cada objeto DEBE tener:
+     - "name": Nombre limpio (productor + etiqueta). NO añadidas frases como "(Ideal)".
+     - "priceRange": 'bajo', 'medio' o 'alto'.
+     - "priceHint": Rango de precio (ej: "15-25€").
+     - "description": Explicación corta y directa.
 
-3. **wineCharacteristics** (string):
-   - Resume en 1-2 frases las características principales del vino ideal
-   - Incluye: color, nivel de sequedad, cuerpo, 1-2 descriptores clave
-   - Ejemplo: "Vino blanco seco con cuerpo medio, alta acidez y carácter mineral refrescante"
+3. **wineCharacteristics** (objeto):
+   - "body", "tannins", "acidity", "tonality": Descripciones breves.
 
-4. **tastingNotes** (string):
-   - Describe aromas y sabores específicos que complementan el plato (2-3 frases)
-   - Conecta directamente estos sabores con elementos del plato
-   - Ejemplo: "Notas de manzana verde y cítricos que equilibran la salinidad del marisco, con un final mineral que realza los sabores del océano"
+4. **tastingNotes**, **pairingReason**:
+   - PROHIBIDO EL USO DE <br> o <p>. 
+   - Usa saltos de línea de texto estándar (\\n) para separar ideas.
+   - Sé específico y evita generalidades.
 
-5. **servingTemperature** (string):
-   - Proporciona rango de temperatura SIEMPRE con unidades en Celsius
-   - Formato obligatorio: "X-Y°C" o "X°C"
-   - Ejemplo: "8-10°C" o "9°C"
+5. **servingTemperature**:
+   - String con el rango (ej: "16-18°C").
 
-6. **suitableGlassware** (string):
-   - Especifica el tipo de copa más adecuado
-   - Añade una breve justificación (opcional)
-   - Ejemplo: "Copa de vino blanco tipo tulipa, para concentrar los aromas frescos"
+6. **suitableGlassware**:
+   - OBJETO con:
+     - "type": Nombre de la copa.
+     - "description": Por qué se usa.
 
-PRINCIPIOS DE MARIDAJE A CONSIDERAR:
-- Equilibrio de intensidades (plato delicado = vino delicado)
-- Acidez del vino para cortar grasa o complementar sabores ácidos
-- Taninos para proteínas
-- Dulzura para picante o salado
-- Contraste o complemento según el caso
-
-CRÍTICO:
-- TODO el contenido debe estar en español
-- Asegúrate de que sea JSON válido (comillas correctas, sin comas finales)
-- Los ejemplos de vinos deben ser REALES, no inventados
-- SIEMPRE incluye unidades en servingTemperature (°C)
-- El array specificWineExamples debe contener entre 2 y 3 elementos
+REGLAS DE ORO:
+- SALIDA EN JSON PURO.
+- SIN ETIQUETAS HTML (NADA de <br>, <p>, etc).
+- Usa caracteres de escape para saltos de línea si es necesario ("\\n").
+- Idioma: Español.
 
 Responde ÚNICAMENTE con el objeto JSON. NO incluyas bloques de código markdown (\`\`\`json).`;
 
@@ -137,15 +143,16 @@ const generateWineRecommendationFlow = ai.defineFlow(
     outputSchema: GenerateWineRecommendationOutputSchema,
   },
   async input => {
-    if (input.userToken) {
-        // BYOK Path: Use direct REST API with OAuth Token (SDK expects API Key)
+    if (input.userToken || input.apiKey) {
+        // BYOK Path: Use direct REST API
         try {
             // Updated to gemini-1.5-flash for maximum stability with OAuth, 
             // as 2.5 might have specific preview restrictions.
             const MODEL_ID = "gemini-2.5-flash"; 
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent`;
+            const baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent`;
+            const API_URL = input.apiKey ? `${baseUrl}?key=${input.apiKey}` : baseUrl;
 
-            // Clean interpolation of the rich template
+            // ... (prompt interpolation stays the same)
             let fullPrompt = PROMPT_TEMPLATE.replace('{{{dishName}}}', input.dishName)
                 .replace('{{{dishCategory}}}', input.dishCategory)
                 .replace('{{#if otherDishCategory}}', input.otherDishCategory ? '' : '<!--')
@@ -173,12 +180,17 @@ const generateWineRecommendationFlow = ai.defineFlow(
 
             fullPrompt += "\n\nIMPORTANTE: Responde ÚNICAMENTE con el objeto JSON.";
 
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+
+            if (input.userToken) {
+                headers['Authorization'] = `Bearer ${input.userToken}`;
+            }
+
             const response = await fetch(API_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${input.userToken}`
-                },
+                headers,
                 body: JSON.stringify({
                     contents: [{
                         parts: [{ text: fullPrompt }]

@@ -16,13 +16,15 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { LogOut, User } from "lucide-react"
 
-export function SignIn(props: React.ComponentProps<typeof Button>) {
+import { OrganicButton } from "@/components/organic/button"
+
+export function SignIn(props: React.ComponentProps<typeof OrganicButton>) {
   return (
     <form action={signInAction}>
-      <Button variant="default" size="sm" {...props}>
+      <OrganicButton variant="default" size="sm" {...props}>
         <User className="mr-2 h-4 w-4" />
-        Iniciar Sesión
-      </Button>
+        Acceder
+      </OrganicButton>
     </form>
   )
 }

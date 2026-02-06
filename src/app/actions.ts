@@ -18,6 +18,7 @@ const FormSchema = z.object({
   dishCategory: z.enum(['appetizer', 'main course', 'dessert', 'other']),
   otherDishCategory: z.string().optional(),
   useCellar: z.boolean().optional(),
+  apiKey: z.string().optional(),
 });
 
 export async function getWinePairing(data: z.infer<typeof FormSchema>) {
@@ -36,13 +37,14 @@ export async function getWinePairing(data: z.infer<typeof FormSchema>) {
         }
     }
 
-    const { dishName, dishDescription, dishCategory, otherDishCategory } = data;
+    const { dishName, dishDescription, dishCategory, otherDishCategory, apiKey } = data;
 
     const recommendationInput: GenerateWineRecommendationInput = {
       dishName,
       dishDescription,
       dishCategory,
       userToken,
+      apiKey,
       availableWines,
     };
     if (dishCategory === 'other' && otherDishCategory) {
@@ -57,6 +59,7 @@ export async function getWinePairing(data: z.infer<typeof FormSchema>) {
           ? otherDishCategory
           : dishCategory,
       userToken,
+      apiKey,
     };
 
     const [recommendationResult, descriptorsResult] = await Promise.all([
